@@ -39,8 +39,12 @@ def on_tick(line_of_passengers, walking_speed, distance_between_rows, tick, plan
         if passenger.is_getting_in_seat:
             # Check if sufficient enough time has passed
             if tick >= passenger.starting_getting_in_seat_tick + passenger.aisle_to_seat_time:
-                plane.occupy_seat(passenger.row + 1, passenger.column + 1)
                 passenger.is_seated = True
+                plane.occupy_seat(passenger.row + 1, passenger.column + 1)
+                if passenger.column <= 3:
+                    plane.seats[passenger.row].left_side_boarding = False
+                else:
+                    plane.seats[passenger.row].right_side_boarding = False
                 line_of_passengers.remove(passenger)
         else:
             # Check if someone is blocking the passenger from moving
@@ -91,7 +95,7 @@ def main():
     while not plane.is_finished_boarding():
         on_tick(line_of_passengers, walking_speed, distance_between_rows, ticks, plane)
         ticks += 1
-    print(f'Seconds to board plane: {ticks}')
+    print(f'Time to board plane: {int(ticks / 60)} minutes, {ticks % 60} seconds')
 
 
 if __name__ == '__main__':
