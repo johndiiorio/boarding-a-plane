@@ -35,20 +35,23 @@ def passenger_ordering(passengers, ordering):
 
 
 def on_tick(line_of_passengers, walking_speed, distance_between_rows, tick, plane):
-    for passenger in line_of_passengers:
-        if passenger.is_seated:
-            raise Exception('Passenger should have been removed from line')
+    for i, passenger in enumerate(line_of_passengers):
         if passenger.is_getting_in_seat:
-            if passenger.starting_getting_in_seat_tick >= tick + passenger.aisle_to_seat_time:
-                plane.occupy_seat(passenger.row, passenger.column)
+            # Check if sufficient enough time has passed
+            if tick >= passenger.starting_getting_in_seat_tick + passenger.aisle_to_seat_time:
+                plane.occupy_seat(passenger.row + 1, passenger.column + 1)
                 passenger.is_seated = True
+                line_of_passengers.remove(passenger)
         else:
-            if False:  # Check if someone is block passenger
+            # Check if someone is blocking the passenger from moving
+            if i > 0 and line_of_passengers[i - 1].is_stopped:
+                passenger.is_stopped = True
                 pass
             else:
+                passenger.is_stopped = False
                 passenger_row_location = passenger.row * distance_between_rows
                 # Move passenger to row location if within step distance
-                if passenger.location + walking_speed < passenger_row_location:
+                if passenger_row_location < passenger.location + walking_speed:
                     passenger.location = passenger_row_location
                 # Otherwise move passenger step distance
                 else:
@@ -59,11 +62,13 @@ def on_tick(line_of_passengers, walking_speed, distance_between_rows, tick, plan
                     if passenger.column <= 3 and not plane.seats[passenger.row].left_side_boarding:
                         plane.seats[passenger.row].left_side_boarding = True
                         passenger.is_getting_in_seat = True
+                        passenger.is_stopped = True
                         passenger.starting_getting_in_seat_tick = tick
                     # check if right side of row is boarding
                     if passenger.column > 3 and not plane.seats[passenger.row].right_side_boarding:
                         plane.seats[passenger.row].right_side_boarding = True
                         passenger.is_getting_in_seat = True
+                        passenger.is_stopped = True
                         passenger.starting_getting_in_seat_tick = tick
 
 

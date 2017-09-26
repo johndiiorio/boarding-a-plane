@@ -8,10 +8,10 @@ class Row:
     def __str__(self):
         row = ''
         for i in self.left_side:
-            row += str(i)[0]
+            row += '1' if i else '0'
         row += ' '
         for i in self.right_side:
-            row += str(i)[0]
+            row += '1' if i else '0'
         return row
 
 
