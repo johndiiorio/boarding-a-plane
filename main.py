@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 from random import shuffle
 from Passenger import Passenger
 from Plane import Plane
-from time import sleep
 
 
 def construct_passengers(num_passengers, average_aisle_to_seat_time, sd_aisle_to_seat_time, lower_bound_aisle_to_seat_time, upper_bound_aisle_to_seat_time):
@@ -67,7 +66,7 @@ def on_tick(line_of_passengers, walking_speed, distance_between_rows, tick, plan
             if tick >= passenger.starting_getting_in_seat_tick + passenger.aisle_to_seat_time:
                 passenger.is_seated = True
                 plane.occupy_seat(passenger.row + 1, passenger.column + 1)
-                if passenger.column <= 3:
+                if passenger.column <= 2:
                     plane.seats[passenger.row].left_side_boarding = False
                 else:
                     plane.seats[passenger.row].right_side_boarding = False
@@ -128,18 +127,18 @@ def board_plane(ordering):
     while not plane.is_finished_boarding():
         on_tick(line_of_passengers, walking_speed, distance_between_rows, ticks, plane)
         ticks += 1
-        # print(plane)
-        # sleep(.05)
-    print(f'Time to board plane: {int(ticks / 60)} minutes, {ticks % 60} seconds')
     return ticks / 60
 
 
 def main():
-    times_to_board = []
+    orderings = ['random', 'back_to_front', 'front_to_back', 'five_boarding_groups_back_to_front']
     iterations = 100
-    for i in range(1, iterations):
-        times_to_board.append(board_plane('five_boarding_groups_back_to_front'))
-    print(sum(times_to_board) / iterations)
+    for order in orderings:
+        times_to_board = []
+        for i in range(1, iterations):
+            times_to_board.append(board_plane(order))
+        avg_time = sum(times_to_board) / iterations
+        print(f'Order {order}: {int(avg_time)} minutes, {round(avg_time % 1 * 60)} seconds')
 
 
 if __name__ == '__main__':
