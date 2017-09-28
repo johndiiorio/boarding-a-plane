@@ -10,4 +10,4 @@ class Passenger:
         self.starting_getting_in_seat_tick = None
 
     def __str__(self):
-        return f'Passenger: {self.row}, {self.column}'
+        return f'Passenger: {self.row}, {self.column}, {self.location}'
