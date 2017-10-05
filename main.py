@@ -40,22 +40,30 @@ def passenger_ordering(passengers, ordering, distance_between_passengers):
     elif ordering == 'front_to_back':
         ordered_passengers = sorted(passengers, key=lambda p: (p.row, p.column))
     elif ordering == 'five_boarding_groups_back_to_front':
-        passengers.sort(key=lambda p: (p.row, p.column))
-        groups = [
-            passengers[:36],
-            passengers[36:72],
-            passengers[72:108],
-            passengers[108:144],
-            passengers[144:]
-        ]
-        for _ in groups:
-            shuffle(_)
-        ordered_passengers = [item for sublist in groups for item in sublist]
-        ordered_passengers.reverse()
+        ordered_passengers = shuffle_passengers_in_boarding_groups(passengers, True)
+    elif ordering == 'five_boarding_groups_front_to_back':
+        ordered_passengers = shuffle_passengers_in_boarding_groups(passengers, False)
     else:
-        return NotImplementedError
+        raise NotImplementedError
     for i, passenger in enumerate(ordered_passengers):
         passenger.location = -distance_between_passengers * i
+    return ordered_passengers
+
+
+def shuffle_passengers_in_boarding_groups(passengers, reverse):
+    passengers.sort(key=lambda p: (p.row, p.column))
+    groups = [
+        passengers[:36],
+        passengers[36:72],
+        passengers[72:108],
+        passengers[108:144],
+        passengers[144:]
+    ]
+    for _ in groups:
+        shuffle(_)
+    ordered_passengers = [item for sublist in groups for item in sublist]
+    if reverse:
+        ordered_passengers.reverse()
     return ordered_passengers
 
 
@@ -131,14 +139,30 @@ def board_plane(ordering):
 
 
 def main():
-    orderings = ['random', 'back_to_front', 'front_to_back', 'five_boarding_groups_back_to_front']
+    orderings = [
+        'random',
+        'back_to_front',
+        'front_to_back',
+        'five_boarding_groups_back_to_front',
+        'five_boarding_groups_front_to_back'
+    ]
     iterations = 100
-    for order in orderings:
-        times_to_board = []
-        for i in range(1, iterations):
-            times_to_board.append(board_plane(order))
-        avg_time = sum(times_to_board) / iterations
-        print(f'Order {order}: {int(avg_time)} minutes, {round(avg_time % 1 * 60)} seconds')
+    with open('output.csv', 'w') as output_file:
+        header = ','.join(orderings)
+        output_file.write(header + '\n')
+        board_times_per_ordering = {}
+        for order in orderings:
+            times_to_board = []
+            for i in range(iterations):
+                times_to_board.append(board_plane(order))
+            board_times_per_ordering[order] = times_to_board
+        for i in range(iterations):
+            for j, order in enumerate(orderings):
+                output_file.write(str(board_times_per_ordering[order][i]))
+                if j != len(orderings) - 1:
+                    output_file.write(',')
+            if i != iterations - 1:
+                output_file.write('\n')
 
 
 if __name__ == '__main__':
