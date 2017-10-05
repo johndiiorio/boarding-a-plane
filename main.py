@@ -1,3 +1,4 @@
+from itertools import product
 import scipy.stats as stats
 import matplotlib.pyplot as plt
 from random import shuffle
@@ -108,14 +109,12 @@ def on_tick(line_of_passengers, walking_speed, distance_between_rows, tick, plan
                         passenger.starting_getting_in_seat_tick = tick
 
 
-def board_plane(ordering):
+def board_plane(ordering, average_aisle_to_seat_time, sd_aisle_to_seat_time):
     # Assumptions
     num_rows = 30
     distance_between_rows = 10
     distance_between_passengers = 2
     walking_speed = 8
-    average_aisle_to_seat_time = 10
-    sd_aisle_to_seat_time = 6
     lower_bound_aisle_to_seat_time = 1
     upper_bound_aisle_to_seat_time = 200
 
@@ -146,25 +145,31 @@ def main():
         'five_boarding_groups_back_to_front',
         'five_boarding_groups_front_to_back'
     ]
+    average_aisle_to_seat_times = [5, 10, 15]
+    sd_aisle_to_seat_times = [3, 6, 9]
     iterations = 100
     with open('output.csv', 'w') as output_file:
-        header = ','.join(orderings)
-        output_file.write(header + '\n')
+        header = ''
         board_times_per_ordering = {}
-        for order in orderings:
+        for order, mean_time, sd_time in product(orderings, average_aisle_to_seat_times, sd_aisle_to_seat_times):
             times_to_board = []
             for i in range(iterations):
-                times_to_board.append(board_plane(order))
-            board_times_per_ordering[order] = times_to_board
+                times_to_board.append(board_plane(order, mean_time, sd_time))
+            key = f'{order}({mean_time}, {sd_time})'
+            header += key + ','
+            board_times_per_ordering[key] = times_to_board
+        header = header[:-1]
+        output_file.write(header + '\n')
+
         for i in range(iterations):
-            for j, order in enumerate(orderings):
-                output_file.write(str(board_times_per_ordering[order][i]))
-                if j != len(orderings) - 1:
-                    output_file.write(',')
+            to_write = ''
+            for time in board_times_per_ordering.values():
+                to_write += f'{time[i]},'
+            to_write = to_write[:-1]
             if i != iterations - 1:
-                output_file.write('\n')
+                to_write += '\n'
+            output_file.write(to_write)
 
 
 if __name__ == '__main__':
     main()
-
